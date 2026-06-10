@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Shield, Mail, Heart } from "lucide-react";
+import { Rocket, Mail, Heart } from "lucide-react";
 import { FaGithub, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 export default function Footer() {
@@ -12,12 +12,11 @@ export default function Footer() {
           {/* Company Info */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <Shield className="h-8 w-8 text-blue-500" />
-              <span className="text-xl font-bold">NextJS Engine</span>
+              <Rocket className="h-8 w-8 text-blue-500" />
+              <span className="text-xl font-bold">NovaStack</span>
             </div>
             <p className="text-slate-400 mb-4 max-w-md">
-              Production-ready Next.js 16 template built with modern technologies.
-              Includes authentication, data tables, and enterprise-grade features.
+              Production-ready Next.js SaaS Starter Kit engineered for scalable systems beyond the limits of the universe.
             </p>
             <div className="flex space-x-4">
               <Link
@@ -134,7 +133,7 @@ export default function Footer() {
         <div className="mt-8 pt-8 border-t border-slate-800">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="text-slate-400 text-sm mb-4 md:mb-0">
-              © {new Date().getFullYear()} NextJS Engine. All rights reserved.
+              © {new Date().getFullYear()} NovaStack. All rights reserved.
             </div>
             <div className="flex items-center space-x-2 text-slate-400 text-sm">
               <span>Made with</span>
