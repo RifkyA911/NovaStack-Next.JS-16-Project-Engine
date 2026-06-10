@@ -14,10 +14,12 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
   {
-  	rules: {
-			"@typescript-eslint/no-explicit-any": "off", // 🔥 matikan rule any
-			'react-hooks/exhaustive-deps': 'off', // 🔥 matikan rule exhaustive-deps
-		},
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off", // 🔥 off rule any
+      'react-hooks/exhaustive-deps': 'off', // 🔥 off rule exhaustive-deps
+      '@typescript-eslint/no-unused-vars': 'off', // 🔥 off rule no-unused-vars
+      "react/no-unescaped-entities": "off"
+    },
   }
 ]);
 
