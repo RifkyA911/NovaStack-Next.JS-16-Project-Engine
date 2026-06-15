@@ -1,0 +1,57 @@
+# Next.JS Project Engine - Components Documentation
+
+Welcome to the component documentation for Next.JS Project Engine. This library provides reusable, production-ready components built on top of [shadcn/ui](https://ui.shadcn.com/) and [TanStack](https://tanstack.com/) libraries.
+
+## Quick Start
+
+### Installation
+
+All components are included in the project. No additional installation needed.
+
+### Basic Usage
+
+```tsx
+import { DataTable } from "@/components/organisms/@tanstack-react-table/data-table";
+
+const columns = [
+  createColumn("id", "ID", "id"),
+  createSortableColumn("name", "Name", "name"),
+];
+
+<DataTable
+  tableName="my-table"
+  columns={columns}
+  data={myData}
+/>
+```
+
+## Components
+
+- **[DataTable](/components/datatable)** - Comprehensive data table with sorting, filtering, pagination, row selection, and more
+
+## Features
+
+- 🎨 **Beautiful UI** - Built with shadcn/ui components
+- ⚡ **Performance** - Optimized with React and TanStack
+- 🔒 **Type-safe** - Full TypeScript support
+- ♿ **Accessible** - WCAG compliant components
+- 🎯 **Reusable** - Drop-in ready with sensible defaults
+- 🌙 **Dark Mode** - Built-in theme support
+
+## Documentation Structure
+
+- **Components** - Individual component documentation with examples
+- **API Reference** - Detailed API documentation
+- **Examples** - Live examples and use cases
+
+## Development Status
+
+This library is currently in **alpha stage**. Components are functional but may change as we refine the API.
+
+## Contributing
+
+This is an internal project. For questions or suggestions, please contact the development team.
+
+## License
+
+Internal use only.

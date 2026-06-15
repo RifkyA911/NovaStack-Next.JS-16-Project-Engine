@@ -1,0 +1,684 @@
+# DataTable Component
+
+Comprehensive, reusable data table component built on top of [TanStack Table](https://tanstack.com/table) and [shadcn/ui](https://ui.shadcn.com/). Provides enterprise-grade features for displaying and managing tabular data with minimal setup.
+
+## Features
+
+### Core Functionality
+- **Sorting** - Click column headers to sort data ascending/descending
+- **Filtering** - Global search across multiple columns with debounced input
+- **Pagination** - Client-side and server-side pagination support
+- **Row Selection** - Single or multiple row selection with checkboxes
+- **Column Visibility** - Dynamic show/hide columns via dropdown
+- **Row Actions** - Custom dropdown actions per row (edit, delete, view, etc.)
+
+### Visual Enhancements
+- **Striped Rows** - Alternating row colors for better readability
+- **Hover Effects** - Row hover states for better UX
+- **Sticky Headers** - Keep headers visible while scrolling
+- **Loading States** - Built-in skeleton loader
+- **Empty States** - Customizable empty state messages
+- **Responsive Design** - Mobile-friendly table layout
+
+### Advanced Features
+- **Zustand Integration** - State management for multiple table instances
+- **Toolbar Actions** - Custom toolbar components at various positions
+- **Server-Side Support** - Ready for server-side pagination/filtering/sorting
+- **TypeScript** - Full type safety with generics
+- **Custom Cell Renderers** - Flexible cell content rendering
+
+## Installation
+
+The component uses existing dependencies in your project:
+
+```bash
+# Already installed in your project
+@tanstack/react-table
+zustand
+use-debounce
+```
+
+## Quick Start
+
+```tsx
+import { DataTable, createColumn, createSortableColumn } from "@/components/organisms/@tanstack-react-table/data-table";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+const columns = [
+  createColumn<User>("id", "ID", "id"),
+  createSortableColumn<User>("name", "Name", "name"),
+  createColumn<User>("email", "Email", "email"),
+  createColumn<User>("role", "Role", "role"),
+];
+
+const data: User[] = [
+  { id: "1", name: "John Doe", email: "john@example.com", role: "Admin" },
+  { id: "2", name: "Jane Smith", email: "jane@example.com", role: "User" },
+];
+
+export default function UserTable() {
+  return (
+    <DataTable
+      tableName="users"
+      columns={columns}
+      data={data}
+      searchKey={["name", "email"]}
+      searchPlaceholder="Search users..."
+    />
+  );
+}
+```
+
+## Props Reference
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `tableName` | `string` | `"default"` | Unique identifier for the table (required for Zustand store) |
+| `columns` | `ColumnDef<TData, TValue>[]` | - | **Required.** Column definitions |
+| `data` | `TData[]` | - | **Required.** Data array to display |
+| `searchKey` | `keyof TData \| Array<keyof TData>` | - | Field(s) to search in (enables search input) |
+| `searchPlaceholder` | `string` | `"Search..."` | Placeholder text for search input |
+| `pageSize` | `number` | `10` | Number of rows per page |
+| `pageOptionSize` | `number[]` | `[10, 20, 30, 40, 50]` | Available page size options |
+| `toolbarActions` | `DataTableToolbarAction<TData>[]` | `[]` | Custom toolbar actions |
+| `enableRowSelection` | `boolean` | `true` | Enable row selection checkboxes |
+| `enableColumnVisibility` | `boolean` | `true` | Enable column visibility toggle |
+| `enableSorting` | `boolean` | `true` | Enable column sorting |
+| `enableSearch` | `boolean` | `true` | Enable search input |
+| `enablePagination` | `boolean` | `true` | Enable pagination |
+| `queryOptions` | `DataTableQuery` | - | Server-side pagination options |
+| `onRowClick` | `(row: Row<TData>) => void` | - | Callback when row is clicked |
+| `onRowSelectionChange` | `(rows: Row<TData>[]) => void` | - | Callback when selection changes |
+| `onRowAction` | `(action: string, row: Row<TData>) => void` | - | Callback for row actions |
+| `rowActions` | `RowAction[]` | `[]` | Array of action items for dropdown |
+| `emptyMessage` | `string` | `"No results found."` | Message when no data |
+| `isLoading` | `boolean` | `false` | Show loading state |
+| `isStickyHeader` | `boolean` | `false` | Make header sticky |
+| `isStriped` | `boolean` | `false` | Alternate row colors |
+| `isHoverable` | `boolean` | `true` | Enable row hover effects |
+| `loadingComponent` | `React.ReactNode` | - | Custom loading component |
+| `className` | `string` | - | Additional CSS classes |
+
+## Column Creation Utilities
+
+### Basic Column
+
+```tsx
+import { createColumn } from "@/components/organisms/@tanstack-react-table/data-table";
+
+const column = createColumn<User>(
+  "id",              // Column ID
+  "User ID",         // Header text
+  "id",              // Data accessor key
+  ({ getValue }) => <span className="font-mono">{getValue()}</span>, // Custom cell renderer
+  {
+    // Additional options
+    enableSorting: true,
+    enableHiding: false,
+  }
+);
+```
+
+### Sortable Column
+
+```tsx
+import { createSortableColumn } from "@/components/organisms/@tanstack-react-table/data-table";
+
+const sortableColumn = createSortableColumn<User>(
+  "name",
+  "Full Name",
+  "name",
+  ({ getValue }) => <strong>{getValue()}</strong>
+);
+```
+
+### Custom Cell Rendering
+
+```tsx
+const statusColumn = createColumn<User>("status", "Status", "status", ({ getValue }) => {
+  const status = getValue() as string;
+  return (
+    <Badge variant={status === "active" ? "default" : "secondary"}>
+      {status}
+    </Badge>
+  );
+});
+
+const dateColumn = createColumn<User>("createdAt", "Created", "createdAt", ({ getValue }) => {
+  const date = getValue() as string;
+  return (
+    <div className="text-sm text-muted-foreground">
+      {new Date(date).toLocaleDateString("id-ID")}
+    </div>
+  );
+});
+```
+
+## Examples
+
+### Basic Table with All Features
+
+```tsx
+import { DataTable, createColumn, createSortableColumn } from "@/components/organisms/@tanstack-react-table/data-table";
+import { Badge } from "@/components/ui/badge";
+import { Edit, Trash2, Eye } from "lucide-react";
+
+interface Product {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  status: "active" | "inactive" | "discontinued";
+  createdAt: string;
+}
+
+const columns: ColumnDef<Product>[] = [
+  createColumn<Product>("id", "ID", "id", ({ getValue }) => (
+    <div className="font-mono text-sm">{getValue() as string}</div>
+  )),
+  
+  createSortableColumn<Product>("name", "Product Name", "name", ({ getValue }) => (
+    <div className="font-medium">{getValue() as string}</div>
+  )),
+  
+  createColumn<Product>("category", "Category", "category", ({ getValue }) => (
+    <Badge variant="secondary">{getValue() as string}</Badge>
+  )),
+  
+  createSortableColumn<Product>("price", "Price", "price", ({ getValue }) => {
+    const price = getValue() as number;
+    return (
+      <div className="font-medium">
+        Rp {price.toLocaleString("id-ID")}
+      </div>
+    );
+  }),
+  
+  createSortableColumn<Product>("status", "Status", "status", ({ getValue }) => {
+    const status = getValue() as string;
+    return (
+      <Badge
+        variant={
+          status === "active"
+            ? "default"
+            : status === "inactive"
+              ? "secondary"
+              : "destructive"
+        }
+      >
+        {status}
+      </Badge>
+    );
+  }),
+];
+
+export default function ProductTable() {
+  const handleRowAction = (action: string, row: any) => {
+    switch (action) {
+      case "view":
+        console.log("View:", row.original);
+        break;
+      case "edit":
+        console.log("Edit:", row.original);
+        break;
+      case "delete":
+        console.log("Delete:", row.original);
+        break;
+    }
+  };
+
+  return (
+    <DataTable
+      tableName="products"
+      columns={columns}
+      data={products}
+      searchKey={["name", "category"]}
+      searchPlaceholder="Search products..."
+      enableRowSelection={true}
+      enableColumnVisibility={true}
+      enableSorting={true}
+      enableSearch={true}
+      enablePagination={true}
+      pageSize={10}
+      onRowAction={handleRowAction}
+      rowActions={[
+        {
+          label: "View Details",
+          value: "view",
+          icon: <Eye className="h-4 w-4" />,
+        },
+        {
+          label: "Edit Product",
+          value: "edit",
+          icon: <Edit className="h-4 w-4" />,
+        },
+        {
+          label: "Delete Product",
+          value: "delete",
+          icon: <Trash2 className="h-4 w-4" />,
+          variant: "destructive",
+        },
+      ]}
+      emptyMessage="No products found."
+      isStriped={true}
+      isHoverable={true}
+      isStickyHeader={true}
+    />
+  );
+}
+```
+
+### With Row Selection
+
+```tsx
+function UserTable() {
+  const [selectedUsers, setSelectedUsers] = useState<Row<User>[]>([]);
+
+  const handleSelectionChange = (rows: Row<User>[]) => {
+    setSelectedUsers(rows);
+    console.log("Selected users:", rows.map(r => r.original));
+  };
+
+  return (
+    <DataTable
+      tableName="users"
+      columns={columns}
+      data={users}
+      enableRowSelection={true}
+      onRowSelectionChange={handleSelectionChange}
+    />
+  );
+}
+```
+
+### With Toolbar Actions
+
+```tsx
+const toolbarActions: DataTableToolbarAction<Product>[] = [
+  {
+    id: "filter",
+    anchor: "left",
+    order: 1,
+    render: () => (
+      <Button variant="outline" size="sm">
+        <Filter className="h-4 w-4 mr-2" />
+        Filter
+      </Button>
+    )
+  },
+  {
+    id: "export",
+    anchor: "right",
+    order: 1,
+    render: ({ selectedRows, clearSelection }) => (
+      <Button 
+        variant="default" 
+        size="sm"
+        disabled={selectedRows.length === 0}
+        onClick={() => {
+          console.log("Exporting:", selectedRows);
+          clearSelection();
+        }}
+      >
+        Export ({selectedRows.length})
+      </Button>
+    )
+  }
+];
+
+return (
+  <DataTable
+    tableName="products"
+    columns={columns}
+    data={products}
+    toolbarActions={toolbarActions}
+  />
+);
+```
+
+### Minimal Configuration
+
+```tsx
+<DataTable
+  tableName="simple"
+  columns={columns.slice(0, 3)}
+  data={data.slice(0, 5)}
+  enableRowSelection={false}
+  enableColumnVisibility={false}
+  enableSorting={false}
+  enableSearch={false}
+  enablePagination={false}
+/>
+```
+
+### Loading State
+
+```tsx
+function UserTable() {
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    fetchUsers().then((data) => {
+      setUsers(data);
+      setLoading(false);
+    });
+  }, []);
+
+  return (
+    <DataTable
+      tableName="users"
+      columns={columns}
+      data={users}
+      isLoading={loading}
+      emptyMessage="No users found."
+    />
+  );
+}
+```
+
+## State Management with Zustand
+
+The component uses Zustand for state management, allowing multiple table instances without conflicts:
+
+```tsx
+import { useReactTableData } from "@/hooks/use-react-table";
+
+function MyComponent() {
+  const {
+    originalData,
+    filteredData,
+    selectedRows,
+    setFilteredData,
+    resetTable,
+  } = useReactTableData("myTable");
+
+  // Filter data programmatically
+  const filterByStatus = (status: string) => {
+    setFilteredData(
+      originalData.filter(item => item.status === status)
+    );
+  };
+
+  // Reset to original data
+  const handleReset = () => {
+    resetTable();
+  };
+
+  return (
+    <>
+      <DataTable
+        tableName="myTable"
+        columns={columns}
+        data={data}
+      />
+      <Button onClick={() => filterByStatus("active")}>
+        Show Active Only
+      </Button>
+      <Button onClick={handleReset}>
+        Reset
+      </Button>
+    </>
+  );
+}
+```
+
+## Server-Side Pagination
+
+For large datasets, use server-side pagination:
+
+```tsx
+const [queryOptions, setQueryOptions] = useState<DataTableQuery>({
+  page: 1,
+  limit: 10,
+  offset: 0,
+  totalPage: 0,
+  lastPage: 0,
+  search: "",
+});
+
+const fetchData = async () => {
+  const response = await fetch(`/api/data?page=${queryOptions.page}&limit=${queryOptions.limit}&search=${queryOptions.search}`);
+  const result = await response.json();
+  setData(result.data);
+  setQueryOptions(prev => ({
+    ...prev,
+    totalPage: result.pagination.totalPages,
+    lastPage: result.pagination.totalPages,
+  }));
+};
+
+useEffect(() => {
+  fetchData();
+}, [queryOptions.page, queryOptions.limit, queryOptions.search]);
+
+return (
+  <DataTable
+    tableName="server-table"
+    columns={columns}
+    data={data}
+    queryOptions={queryOptions}
+    onPageChange={(page) => setQueryOptions(prev => ({ ...prev, page }))}
+    onSearchChange={(search) => setQueryOptions(prev => ({ ...prev, search, page: 1 }))}
+  />
+);
+```
+
+## Styling Customization
+
+### Custom CSS Classes
+
+```tsx
+<DataTable
+  tableName="custom"
+  columns={columns}
+  data={data}
+  className="border-2 border-primary/20 rounded-lg"
+/>
+```
+
+### Theme Integration
+
+The component automatically integrates with your shadcn/ui theme and respects:
+- Light/Dark mode
+- Custom color schemes
+- Typography settings
+- Spacing and sizing
+
+## Performance Considerations
+
+### Large Datasets
+
+For large datasets (>1000 rows), consider:
+- Using server-side pagination
+- Implementing virtual scrolling
+- Debouncing search inputs (built-in with 500ms debounce)
+- Memoizing column definitions
+
+### Optimization Tips
+
+```tsx
+// Memoize columns to prevent re-renders
+const columns = useMemo(
+  () => [
+    createColumn<User>("id", "ID", "id"),
+    createSortableColumn<User>("name", "Name", "name"),
+  ],
+  []
+);
+
+// Memoize data if it comes from props
+const memoizedData = useMemo(() => data, [data]);
+```
+
+## Accessibility
+
+The component includes built-in accessibility features:
+- ARIA labels for screen readers
+- Keyboard navigation support
+- Focus management
+- Semantic HTML structure
+- Color contrast compliance
+
+## Troubleshooting
+
+### Common Issues
+
+**Columns not rendering**
+- Check that `accessorKey` matches your data properties
+- Ensure data is not empty or undefined
+
+**Sorting not working**
+- Verify `enableSorting` is true
+- Use `createSortableColumn` for sortable columns
+- Check that `accessorKey` is properly set
+
+**Search not working**
+- Ensure `searchKey` matches a column's `accessorKey`
+- Check that `enableSearch` is true
+- Verify search key is an array if searching multiple fields
+
+**Row actions not showing**
+- Verify `rowActions` array is not empty
+- Check that `onRowAction` callback is provided
+
+**Multiple tables conflicting**
+- Ensure each table has a unique `tableName`
+- Different table names prevent Zustand store conflicts
+
+### Debug Mode
+
+The component includes console logs for debugging (visible in development):
+
+```tsx
+// Check browser console for:
+// - Table state
+// - Pagination state
+// - Data counts
+// - Server-side mode status
+```
+
+## Best Practices
+
+1. **Always provide a unique `tableName`** for each table instance
+2. **Use `createSortableColumn`** for columns that need sorting
+3. **Memoize column definitions** to prevent unnecessary re-renders
+4. **Use server-side pagination** for datasets > 1000 rows
+5. **Provide meaningful `emptyMessage`** for better UX
+6. **Use `toolbarActions`** for custom toolbar functionality
+7. **Implement proper loading states** for async data
+
+## Live Demo
+
+See the live example in your project at:
+- `src/components/examples/data-table-example.tsx` - Comprehensive examples
+- `src/app/dashboard` - Dashboard implementation (alpha stage)
+
+## API Reference
+
+### Types
+
+```tsx
+interface DataTableProps<TData, TValue> {
+  tableName?: string;
+  className?: string;
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
+  pageSize?: number;
+  pageOptionSize?: number[];
+  searchKey?: keyof TData | Array<keyof TData>;
+  searchPlaceholder?: string;
+  toolbarActions?: DataTableToolbarAction<TData>[];
+  enableRowSelection?: boolean;
+  enableColumnVisibility?: boolean;
+  enableSorting?: boolean;
+  enableSearch?: boolean;
+  enablePagination?: boolean;
+  queryOptions?: DataTableQuery;
+  onPreviousPage?: () => void;
+  onNextPage?: () => void;
+  onPageChange?: (page: number) => void;
+  onSearchChange?: (search: string) => void;
+  onRowClick?: (row: Row<TData>) => void;
+  onRowSelectionChange?: (selectedRows: Row<TData>[]) => void;
+  onRowAction?: (action: string, row: Row<TData>) => void;
+  rowActions?: Array<{
+    label: string;
+    value: string;
+    icon?: React.ReactNode;
+    variant?: "default" | "destructive";
+  }>;
+  emptyMessage?: string;
+  isLoading?: boolean;
+  isStickyHeader?: boolean;
+  isStriped?: boolean;
+  isHoverable?: boolean;
+  loadingComponent?: React.ReactNode;
+}
+
+interface DataTableToolbarAction<TData> {
+  id: string;
+  anchor?: ToolbarAnchor;
+  order?: number;
+  render: React.ReactNode | ((ctx: {
+    tableName: string;
+    selectedRows: Row<TData>[];
+    clearSelection: () => void;
+  }) => React.ReactNode);
+}
+
+interface DataTableQuery {
+  page: number;
+  limit: number;
+  offset: number;
+  totalPage: number;
+  lastPage: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC" | "asc" | "desc" | null;
+}
+```
+
+### Utility Functions
+
+```tsx
+// Create basic column
+createColumn<TData>(
+  id: string,
+  header: string,
+  accessorKey?: keyof TData,
+  cell?: (props: any) => React.ReactNode,
+  options?: Partial<ColumnDef<TData>>
+): ColumnDef<TData>
+
+// Create sortable column
+createSortableColumn<TData>(
+  id: string,
+  header: string,
+  accessorKey?: keyof TData,
+  cell?: (props: any) => React.ReactNode,
+  options?: Partial<ColumnDef<TData>>
+): ColumnDef<TData>
+
+// Create filterable column
+createFilterableColumn<TData>(
+  id: string,
+  header: string,
+  accessorKey?: keyof TData,
+  cell?: (props: any) => React.ReactNode,
+  filterFn?: any,
+  options?: Partial<ColumnDef<TData>>
+): ColumnDef<TData>
+```
+
+## Related Components
+
+- [Form Component](/components/form) - Reusable form component
+- [UI Components](/components/ui) - Base UI components from shadcn/ui
