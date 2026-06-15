@@ -398,9 +398,9 @@ export default function Home() {
                   <Rocket className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/docs">
+              <Link href="/docs" target="_blank">
                 <Button size="default" variant="outline" className="text-sm px-6 py-2 bg-transparent border-2 border-white text-white hover:bg-white/10 transition-all">
-                  Documentation
+                  📚 Documentation
                 </Button>
               </Link>
             </div>
