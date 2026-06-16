@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChevronRight, ChevronDown, Copy, Check, Book, Code, Zap, Shield, Sun, Moon } from "lucide-react";
+import { ChevronRight, Copy, Check, Book, Code, Zap, Shield } from "lucide-react";
 import ThemeToggle from "@/components/theme-toggle";
 
-export default function DataTableDocsContent() {
+export default function DialogFormDocsContent() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   const copyCode = (codeId: string, code: string) => {
@@ -31,10 +31,10 @@ export default function DataTableDocsContent() {
           </a>
           <div className="pt-2">
             <p className="px-3 text-xs font-semibold text-muted-foreground mb-2">COMPONENTS</p>
-            <a href="/docs/datatable" className="block px-3 py-2 rounded-lg text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
+            <a href="/docs/datatable" className="block px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
               DataTable
             </a>
-            <a href="/docs/form" className="block px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <a href="/docs/form" className="block px-3 py-2 rounded-lg text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 font-medium">
               DialogForm
             </a>
           </div>
@@ -74,7 +74,7 @@ export default function DataTableDocsContent() {
                 Components
               </a>
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium">DataTable</span>
+              <span className="font-medium">DialogForm</span>
             </div>
             <ThemeToggle />
           </div>
@@ -87,10 +87,10 @@ export default function DataTableDocsContent() {
             <Badge variant="secondary">Component</Badge>
             <Badge variant="outline">Alpha Stage</Badge>
           </div>
-          <h1 className="text-4xl font-bold mb-4">DataTable Component</h1>
+          <h1 className="text-4xl font-bold mb-4">DialogForm Component</h1>
           <p className="text-lg text-muted-foreground max-w-3xl">
-            Comprehensive, reusable data table component built on top of TanStack Table and shadcn/ui. 
-            Provides enterprise-grade features for displaying and managing tabular data with minimal setup.
+            Dynamic dialog form component built on top of TanStack Form and Zod validation. 
+            Provides a flexible, reusable form-in-dialog solution with built-in validation and file upload support.
           </p>
         </div>
 
@@ -103,12 +103,12 @@ export default function DataTableDocsContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
-                <li>✅ Sorting - Click column headers to sort</li>
-                <li>✅ Filtering - Global search with debounce</li>
-                <li>✅ Pagination - Client & server-side</li>
-                <li>✅ Row Selection - Single/multiple rows</li>
-                <li>✅ Column Visibility - Dynamic show/hide</li>
-                <li>✅ Row Actions - Custom dropdown actions</li>
+                <li>✅ Dynamic Fields - Config-based form</li>
+                <li>✅ Validation - Zod schema validation</li>
+                <li>✅ Field Types - text, email, tel, textarea, file</li>
+                <li>✅ File Upload - Integrated drag-and-drop</li>
+                <li>✅ Controlled/Uncontrolled - Both modes</li>
+                <li>✅ Loading States - Built-in indicator</li>
               </ul>
             </CardContent>
           </Card>
@@ -120,12 +120,12 @@ export default function DataTableDocsContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
-                <li>✅ Striped Rows - Alternating colors</li>
-                <li>✅ Hover Effects - Row hover states</li>
-                <li>✅ Sticky Headers - Keep headers visible</li>
-                <li>✅ Loading States - Built-in skeleton</li>
-                <li>✅ Empty States - Custom messages</li>
+                <li>✅ Error States - Visual feedback</li>
+                <li>✅ Loading Indicator - Spinner during submit</li>
                 <li>✅ Responsive Design - Mobile-friendly</li>
+                <li>✅ Custom Styling - Full control</li>
+                <li>✅ Dialog Integration - shadcn/ui dialog</li>
+                <li>✅ Form Reset - Auto-reset on close</li>
               </ul>
             </CardContent>
           </Card>
@@ -137,12 +137,12 @@ export default function DataTableDocsContent() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm">
-                <li>✅ Zustand Integration - State management</li>
-                <li>✅ Toolbar Actions - Custom components</li>
-                <li>✅ Server-Side Support - Pagination/filtering</li>
-                <li>✅ TypeScript - Full type safety</li>
-                <li>✅ Custom Cell Renderers - Flexible content</li>
+                <li>✅ TanStack Form - Modern state management</li>
+                <li>✅ Zod Validation - Type-safe validation</li>
+                <li>✅ File Upload - Seamless handling</li>
                 <li>✅ Accessibility - WCAG compliant</li>
+                <li>✅ TypeScript - Full type safety</li>
+                <li>✅ Real-time Validation - On-change errors</li>
               </ul>
             </CardContent>
           </Card>
@@ -152,7 +152,7 @@ export default function DataTableDocsContent() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Quick Start</CardTitle>
-            <CardDescription>Get started with DataTable in minutes</CardDescription>
+            <CardDescription>Get started with DialogForm in minutes</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -160,13 +160,14 @@ export default function DataTableDocsContent() {
                 <p className="text-sm font-medium mb-2">1. Import the component</p>
                 <div className="relative">
                   <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{`import { DataTable, createColumn, createSortableColumn } from "@/components/organisms/@tanstack-react-table/data-table";`}</code>
+                    <code>{`import { DynamicDialogForm } from "@/components/organisms/dialog-form/dialog-form";
+import { z } from "zod";`}</code>
                   </pre>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2"
-                    onClick={() => copyCode("import", 'import { DataTable, createColumn, createSortableColumn } from "@/components/organisms/@tanstack-react-table/data-table";')}
+                    onClick={() => copyCode("import", 'import { DynamicDialogForm } from "@/components/organisms/dialog-form/dialog-form";\nimport { z } from "zod";')}
                   >
                     {copiedCode === "import" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
@@ -174,42 +175,74 @@ export default function DataTableDocsContent() {
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">2. Define your data type and columns</p>
+                <p className="text-sm font-medium mb-2">2. Define validation schema and fields</p>
                 <div className="relative">
                   <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{`interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+                    <code>{`const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+});
 
-const columns = [
-  createColumn<User>("id", "ID", "id"),
-  createSortableColumn<User>("name", "Name", "name"),
-  createColumn<User>("email", "Email", "email"),
-  createColumn<User>("role", "Role", "role"),
+const fields = [
+  {
+    name: "name",
+    label: "Full Name",
+    type: "text" as const,
+    placeholder: "Enter your name",
+    validation: userSchema.shape.name,
+  },
+  {
+    name: "email",
+    label: "Email Address",
+    type: "email" as const,
+    placeholder: "you@example.com",
+    validation: userSchema.shape.email,
+  },
+  {
+    name: "message",
+    label: "Message",
+    type: "textarea" as const,
+    placeholder: "Write your message...",
+    validation: userSchema.shape.message,
+  },
 ];`}</code>
                   </pre>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2"
-                    onClick={() => copyCode("columns", `interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+                    onClick={() => copyCode("schema", `const userSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  message: z.string().min(10, "Message must be at least 10 characters"),
+});
 
-const columns = [
-  createColumn<User>("id", "ID", "id"),
-  createSortableColumn<User>("name", "Name", "name"),
-  createColumn<User>("email", "Email", "email"),
-  createColumn<User>("role", "Role", "role"),
+const fields = [
+  {
+    name: "name",
+    label: "Full Name",
+    type: "text" as const,
+    placeholder: "Enter your name",
+    validation: userSchema.shape.name,
+  },
+  {
+    name: "email",
+    label: "Email Address",
+    type: "email" as const,
+    placeholder: "you@example.com",
+    validation: userSchema.shape.email,
+  },
+  {
+    name: "message",
+    label: "Message",
+    type: "textarea" as const,
+    placeholder: "Write your message...",
+    validation: userSchema.shape.message,
+  },
 ];`)}
                   >
-                    {copiedCode === "columns" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copiedCode === "schema" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
@@ -218,24 +251,42 @@ const columns = [
                 <p className="text-sm font-medium mb-2">3. Use the component</p>
                 <div className="relative">
                   <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{`<DataTable
-  tableName="users"
-  columns={columns}
-  data={users}
-  searchKey={["name", "email"]}
-  searchPlaceholder="Search users..."
+                    <code>{`const handleSubmit = async (data: any) => {
+  console.log("Form data:", data);
+  await fetch("/api/contact", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+<DynamicDialogForm
+  title="Contact Form"
+  description="Send us a message"
+  fields={fields}
+  schema={userSchema}
+  onSubmit={handleSubmit}
+  trigger={<Button>Contact Us</Button>}
 />`}</code>
                   </pre>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2"
-                    onClick={() => copyCode("usage", `<DataTable
-  tableName="users"
-  columns={columns}
-  data={users}
-  searchKey={["name", "email"]}
-  searchPlaceholder="Search users..."
+                    onClick={() => copyCode("usage", `const handleSubmit = async (data: any) => {
+  console.log("Form data:", data);
+  await fetch("/api/contact", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+<DynamicDialogForm
+  title="Contact Form"
+  description="Send us a message"
+  fields={fields}
+  schema={userSchema}
+  onSubmit={handleSubmit}
+  trigger={<Button>Contact Us</Button>}
 />`)}
                   >
                     {copiedCode === "usage" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -250,7 +301,7 @@ const columns = [
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Props Reference</CardTitle>
-            <CardDescription>All available props for the DataTable component</CardDescription>
+            <CardDescription>All available props for the DialogForm component</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -265,64 +316,52 @@ const columns = [
                 </thead>
                 <tbody>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">tableName</td>
+                    <td className="p-2 font-mono text-xs">title</td>
                     <td className="p-2 text-xs">string</td>
-                    <td className="p-2 text-xs">"default"</td>
-                    <td className="p-2 text-xs">Unique identifier for Zustand store</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">columns</td>
-                    <td className="p-2 text-xs">ColumnDef[]</td>
                     <td className="p-2 text-xs">-</td>
-                    <td className="p-2 text-xs">Required. Column definitions</td>
+                    <td className="p-2 text-xs">Required. Dialog title</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">data</td>
-                    <td className="p-2 text-xs">TData[]</td>
+                    <td className="p-2 font-mono text-xs">fields</td>
+                    <td className="p-2 text-xs">FieldConfig[]</td>
                     <td className="p-2 text-xs">-</td>
-                    <td className="p-2 text-xs">Required. Data array to display</td>
+                    <td className="p-2 text-xs">Required. Array of field configurations</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">searchKey</td>
-                    <td className="p-2 text-xs">keyof | Array</td>
+                    <td className="p-2 font-mono text-xs">schema</td>
+                    <td className="p-2 text-xs">z.ZodObject</td>
                     <td className="p-2 text-xs">-</td>
-                    <td className="p-2 text-xs">Field(s) to search in</td>
+                    <td className="p-2 text-xs">Required. Zod validation schema</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">pageSize</td>
-                    <td className="p-2 text-xs">number</td>
-                    <td className="p-2 text-xs">10</td>
-                    <td className="p-2 text-xs">Number of rows per page</td>
+                    <td className="p-2 font-mono text-xs">onSubmit</td>
+                    <td className="p-2 text-xs">function</td>
+                    <td className="p-2 text-xs">-</td>
+                    <td className="p-2 text-xs">Required. Form submission handler</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">enableRowSelection</td>
-                    <td className="p-2 text-xs">boolean</td>
-                    <td className="p-2 text-xs">true</td>
-                    <td className="p-2 text-xs">Enable row selection checkboxes</td>
+                    <td className="p-2 font-mono text-xs">description</td>
+                    <td className="p-2 text-xs">string</td>
+                    <td className="p-2 text-xs">-</td>
+                    <td className="p-2 text-xs">Dialog description text</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">enableSorting</td>
-                    <td className="p-2 text-xs">boolean</td>
-                    <td className="p-2 text-xs">true</td>
-                    <td className="p-2 text-xs">Enable column sorting</td>
+                    <td className="p-2 font-mono text-xs">trigger</td>
+                    <td className="p-2 text-xs">ReactNode</td>
+                    <td className="p-2 text-xs">-</td>
+                    <td className="p-2 text-xs">Trigger element for dialog</td>
                   </tr>
                   <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">enableSearch</td>
-                    <td className="p-2 text-xs">boolean</td>
-                    <td className="p-2 text-xs">true</td>
-                    <td className="p-2 text-xs">Enable search input</td>
-                  </tr>
-                  <tr className="border-b">
-                    <td className="p-2 font-mono text-xs">isStriped</td>
-                    <td className="p-2 text-xs">boolean</td>
-                    <td className="p-2 text-xs">false</td>
-                    <td className="p-2 text-xs">Alternate row colors</td>
+                    <td className="p-2 font-mono text-xs">submitButtonText</td>
+                    <td className="p-2 text-xs">string</td>
+                    <td className="p-2 text-xs">"Submit"</td>
+                    <td className="p-2 text-xs">Submit button text</td>
                   </tr>
                   <tr>
-                    <td className="p-2 font-mono text-xs">isStickyHeader</td>
-                    <td className="p-2 text-xs">boolean</td>
-                    <td className="p-2 text-xs">false</td>
-                    <td className="p-2 text-xs">Make header sticky</td>
+                    <td className="p-2 font-mono text-xs">cancelButtonText</td>
+                    <td className="p-2 text-xs">string</td>
+                    <td className="p-2 text-xs">"Cancel"</td>
+                    <td className="p-2 text-xs">Cancel button text</td>
                   </tr>
                 </tbody>
               </table>
@@ -339,36 +378,34 @@ const columns = [
           <CardContent>
             <Tabs defaultValue="basic" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="basic">Basic</TabsTrigger>
-                <TabsTrigger value="actions">With Actions</TabsTrigger>
-                <TabsTrigger value="selection">With Selection</TabsTrigger>
+                <TabsTrigger value="basic">Basic Form</TabsTrigger>
+                <TabsTrigger value="file">File Upload</TabsTrigger>
+                <TabsTrigger value="controlled">Controlled</TabsTrigger>
               </TabsList>
               
               <TabsContent value="basic" className="mt-4">
                 <div className="relative">
                   <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{`<DataTable
-  tableName="products"
-  columns={columns}
-  data={products}
-  searchKey={["name", "category"]}
-  searchPlaceholder="Search products..."
-  isStriped={true}
-  isHoverable={true}
+                    <code>{`<DynamicDialogForm
+  title="Contact Us"
+  description="Send us a message"
+  fields={contactFields}
+  schema={contactSchema}
+  onSubmit={handleSubmit}
+  trigger={<Button>Contact Us</Button>}
 />`}</code>
                   </pre>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2"
-                    onClick={() => copyCode("basic", `<DataTable
-  tableName="products"
-  columns={columns}
-  data={products}
-  searchKey={["name", "category"]}
-  searchPlaceholder="Search products..."
-  isStriped={true}
-  isHoverable={true}
+                    onClick={() => copyCode("basic", `<DynamicDialogForm
+  title="Contact Us"
+  description="Send us a message"
+  fields={contactFields}
+  schema={contactSchema}
+  onSubmit={handleSubmit}
+  trigger={<Button>Contact Us</Button>}
 />`)}
                   >
                     {copiedCode === "basic" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
@@ -376,106 +413,94 @@ const columns = [
                 </div>
               </TabsContent>
 
-              <TabsContent value="actions" className="mt-4">
+              <TabsContent value="file" className="mt-4">
                 <div className="relative">
                   <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{`<DataTable
-  tableName="products"
-  columns={columns}
-  data={products}
-  onRowAction={handleRowAction}
-  rowActions={[
-    {
-      label: "View Details",
-      value: "view",
-      icon: <Eye className="h-4 w-4" />,
-    },
-    {
-      label: "Edit Product",
-      value: "edit",
-      icon: <Edit className="h-4 w-4" />,
-    },
-    {
-      label: "Delete Product",
-      value: "delete",
-      icon: <Trash2 className="h-4 w-4" />,
-      variant: "destructive",
-    },
-  ]}
+                    <code>{`const uploadSchema = z.object({
+  title: z.string().min(3, "Title too short"),
+  file: z.instanceof(File).refine(
+    (file) => file.size <= 5 * 1024 * 1024,
+    "File must be under 5MB"
+  ),
+});
+
+<DynamicDialogForm
+  title="Upload Document"
+  description="Upload a document (max 5MB)"
+  fields={uploadFields}
+  schema={uploadSchema}
+  onSubmit={handleUpload}
+  trigger={<Button>Upload</Button>}
 />`}</code>
                   </pre>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2"
-                    onClick={() => copyCode("actions", `<DataTable
-  tableName="products"
-  columns={columns}
-  data={products}
-  onRowAction={handleRowAction}
-  rowActions={[
-    {
-      label: "View Details",
-      value: "view",
-      icon: <Eye className="h-4 w-4" />,
-    },
-    {
-      label: "Edit Product",
-      value: "edit",
-      icon: <Edit className="h-4 w-4" />,
-    },
-    {
-      label: "Delete Product",
-      value: "delete",
-      icon: <Trash2 className="h-4 w-4" />,
-      variant: "destructive",
-    },
-  ]}
+                    onClick={() => copyCode("file", `const uploadSchema = z.object({
+  title: z.string().min(3, "Title too short"),
+  file: z.instanceof(File).refine(
+    (file) => file.size <= 5 * 1024 * 1024,
+    "File must be under 5MB"
+  ),
+});
+
+<DynamicDialogForm
+  title="Upload Document"
+  description="Upload a document (max 5MB)"
+  fields={uploadFields}
+  schema={uploadSchema}
+  onSubmit={handleUpload}
+  trigger={<Button>Upload</Button>}
 />`)}
                   >
-                    {copiedCode === "actions" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copiedCode === "file" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </TabsContent>
 
-              <TabsContent value="selection" className="mt-4">
+              <TabsContent value="controlled" className="mt-4">
                 <div className="relative">
                   <pre className="bg-slate-900 text-slate-50 p-4 rounded-lg overflow-x-auto text-sm">
-                    <code>{`const [selectedUsers, setSelectedUsers] = useState<Row<User>[]>([]);
+                    <code>{`const [isOpen, setIsOpen] = useState(false);
 
-const handleSelectionChange = (rows: Row<User>[]) => {
-  setSelectedUsers(rows);
-  console.log("Selected users:", rows.map(r => r.original));
-};
-
-<DataTable
-  tableName="users"
-  columns={columns}
-  data={users}
-  enableRowSelection={true}
-  onRowSelectionChange={handleSelectionChange}
-/>`}</code>
+<>
+  <Button onClick={() => setIsOpen(true)}>
+    Open Form
+  </Button>
+  
+  <DynamicDialogForm
+    title="Controlled Form"
+    fields={fields}
+    schema={schema}
+    onSubmit={handleSubmit}
+    open={isOpen}
+    onOpenChange={setIsOpen}
+  />
+</>`}</code>
                   </pre>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="absolute top-2 right-2"
-                    onClick={() => copyCode("selection", `const [selectedUsers, setSelectedUsers] = useState<Row<User>[]>([]);
+                    onClick={() => copyCode("controlled", `const [isOpen, setIsOpen] = useState(false);
 
-const handleSelectionChange = (rows: Row<User>[]) => {
-  setSelectedUsers(rows);
-  console.log("Selected users:", rows.map(r => r.original));
-};
-
-<DataTable
-  tableName="users"
-  columns={columns}
-  data={users}
-  enableRowSelection={true}
-  onRowSelectionChange={handleSelectionChange}
-/>`)}
+<>
+  <Button onClick={() => setIsOpen(true)}>
+    Open Form
+  </Button>
+  
+  <DynamicDialogForm
+    title="Controlled Form"
+    fields={fields}
+    schema={schema}
+    onSubmit={handleSubmit}
+    open={isOpen}
+    onOpenChange={setIsOpen}
+  />
+</>`)}
                   >
-                    {copiedCode === "selection" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copiedCode === "controlled" ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </Button>
                 </div>
               </TabsContent>
@@ -483,74 +508,33 @@ const handleSelectionChange = (rows: Row<User>[]) => {
           </CardContent>
         </Card>
 
-        {/* Live Demo Link */}
-        <Card className="mb-8 border-blue-200 dark:border-blue-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Code className="h-5 w-5 text-blue-500" />
-              Live Demo
-            </CardTitle>
-            <CardDescription>
-              See the DataTable in action in your project
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                <div>
-                  <p className="font-medium">Example Component</p>
-                  <p className="text-sm text-muted-foreground">Comprehensive examples with all features</p>
-                </div>
-                <Button size="sm" variant="outline" asChild>
-                  <a href="/dashboard" target="_blank">
-                    View Demo
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </a>
-                </Button>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                <div>
-                  <p className="font-medium">Dashboard Implementation</p>
-                  <p className="text-sm text-muted-foreground">Real-world usage in dashboard (alpha stage)</p>
-                </div>
-                <Button size="sm" variant="outline" asChild>
-                  <a href="/dashboard" target="_blank">
-                    View Dashboard
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </a>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Best Practices */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle>Best Practices</CardTitle>
-            <CardDescription>Tips for using DataTable effectively</CardDescription>
+            <CardDescription>Tips for using DialogForm effectively</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                <span><strong>Always provide a unique tableName</strong> for each table instance to prevent Zustand store conflicts</span>
+                <span><strong>Always provide meaningful error messages</strong> in your Zod schemas</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                <span><strong>Use createSortableColumn</strong> for columns that need sorting functionality</span>
+                <span><strong>Use appropriate field types</strong> for better UX (email for emails, tel for phones)</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                <span><strong>Memoize column definitions</strong> to prevent unnecessary re-renders</span>
+                <span><strong>Handle file uploads properly</strong> with size and type validation</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                <span><strong>Use server-side pagination</strong> for datasets larger than 1000 rows</span>
+                <span><strong>Use controlled mode</strong> when you need external control over dialog state</span>
               </li>
               <li className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                <span><strong>Provide meaningful emptyMessage</strong> for better UX when no data is available</span>
+                <span><strong>Validate on the server</strong> even with client-side validation</span>
               </li>
             </ul>
           </CardContent>
@@ -558,7 +542,7 @@ const handleSelectionChange = (rows: Row<User>[]) => {
 
         {/* Footer */}
         <div className="text-center text-sm text-muted-foreground pt-8 border-t">
-          <p>DataTable Component - Part of Next.JS Project Engine</p>
+          <p>DialogForm Component - Part of Next.JS Project Engine</p>
           <p className="mt-1">Status: Alpha Stage - Features may change as we refine the API</p>
         </div>
       </div>
