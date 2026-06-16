@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse, NextFetchEvent } from "next/server";
 
 export async function logMiddleware(req: NextRequest, event: NextFetchEvent) {
+  // Check if logger is enabled
+  if (process.env.LOGGER_ENABLED !== "true") {
+    return NextResponse.next();
+  }
+
   // const ip = req.headers.get("x-forwarded-for") || "::1";
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
