@@ -1,0 +1,325 @@
+# RBAC (Role-Based Access Control)
+
+Role-Based Access Control middleware for protecting routes based on user roles and permissions.
+
+## Overview
+
+The RBAC middleware provides fine-grained access control for your Next.js application. It restricts access to specific routes based on user roles, ensuring that users can only access the resources they're authorized to use.
+
+## Features
+
+- **Role-Based Protection**: Restrict routes based on user roles
+- **Forbidden Routes**: Configure specific routes that each role cannot access
+- **Wildcard Support**: Allow full access with wildcard (`!`) character
+- **Automatic Redirects**: Redirect unauthorized users to appropriate pages
+- **Token Validation**: Validates JWT tokens from NextAuth
+- **Custom Error Pages**: Redirect to 403 page for forbidden access
+
+## Configuration
+
+### Role Definitions
+
+Configure role permissions in `src/middlewares/role.ts`:
+
+```typescript
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"], // "!" means all routes allowed
+  user: ["/dashboard/users"], // user forbidden from these routes
+  guest: ["/dashboard"], // guest forbidden from dashboard
+};
+```
+
+### Role Types
+
+- **`administrator`**: Full access to all routes (wildcard `!`)
+- **`user`**: Standard user with restricted access
+- **`guest`**: Limited access, typically for unauthenticated users
+- **Custom roles**: Add your own roles as needed
+
+## Usage
+
+### Basic Setup
+
+```typescript
+import { rbacMiddleware } from "@/middlewares/role";
+import type { NextRequest } from "next/server";
+
+export default function middleware(req: NextRequest) {
+  // Apply RBAC to dashboard routes
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
+    return rbacMiddleware(req);
+  }
+
+  return NextResponse.next();
+}
+```
+
+### Composed Middleware
+
+```typescript
+import { rbacMiddleware } from "@/middlewares/role";
+import { logMiddleware } from "@/middlewares/logger";
+import type { NextRequest, NextFetchEvent } from "next/server";
+
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  // Apply logger
+  await logMiddleware(req, event);
+
+  // Apply RBAC to protected routes
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
+    return rbacMiddleware(req);
+  }
+
+  return NextResponse.next();
+}
+```
+
+## How It Works
+
+### Authentication Check
+
+1. Middleware checks if user has a valid JWT token
+2. If no token, redirects to `/auth/login`
+3. If token exists, extracts user role from token
+
+### Authorization Check
+
+1. Retrieves forbidden routes for the user's role
+2. If role has wildcard (`!`), allows access to all routes
+3. Checks if current route is in forbidden list
+4. If forbidden, redirects to `/errors/403`
+5. If allowed, continues to requested route
+
+### Redirect Behavior
+
+- **Unauthenticated** → `/auth/login`
+- **Forbidden** → `/errors/403`
+- **Authorized** → Continue to requested route
+
+## Advanced Configuration
+
+### Custom Roles
+
+Add custom roles to the configuration:
+
+```typescript
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"],
+  user: ["/dashboard/users", "/dashboard/settings"],
+  moderator: ["/dashboard/settings"],
+  guest: ["/dashboard"],
+  api_user: ["/dashboard"], // API-only user
+};
+```
+
+### Route Patterns
+
+Use route patterns for broader restrictions:
+
+```typescript
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"],
+  user: [
+    "/dashboard/users",      // Specific route
+    "/dashboard/admin",      // Specific route
+    "/api/admin",           // API routes
+  ],
+};
+```
+
+### Dynamic Forbidden Routes
+
+For dynamic route restrictions:
+
+```typescript
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"],
+  user: ["/dashboard/users/:id"], // Dynamic route
+};
+```
+
+## Token Structure
+
+The RBAC middleware expects the JWT token to include a `role` field:
+
+```typescript
+// Token payload structure
+{
+  sub: "user-id",
+  name: "John Doe",
+  email: "john@example.com",
+  role: "user",  // Required for RBAC
+  iat: 1234567890,
+  exp: 1234567890
+}
+```
+
+## Environment Variables
+
+Required environment variables:
+
+```env
+# NextAuth configuration
+NEXTAUTH_SECRET='supersecretkey'
+NEXTAUTH_URL='http://localhost:3000'
+```
+
+## Error Pages
+
+### 403 Forbidden Page
+
+Create a custom 403 page for forbidden access:
+
+```typescript
+// app/errors/403/page.tsx
+export default function ForbiddenPage() {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">403 Forbidden</h1>
+        <p className="text-muted-foreground mb-4">
+          You don't have permission to access this page.
+        </p>
+        <a href="/dashboard" className="text-blue-500 hover:underline">
+          Return to Dashboard
+        </a>
+      </div>
+    </div>
+  );
+}
+```
+
+## Best Practices
+
+1. **Principle of Least Privilege**: Give users only the access they need
+2. **Regular Audits**: Review and update role permissions regularly
+3. **Clear Role Definitions**: Document what each role can and cannot do
+4. **Test Thoroughly**: Test all role configurations before deployment
+5. **Monitor Access**: Log access attempts for security monitoring
+6. **Use Wildcards Carefully**: Only give full access when absolutely necessary
+
+## Security Considerations
+
+- **Token Validation**: Always validate tokens on the server side
+- **Role Verification**: Verify roles on both client and server
+- **Session Management**: Implement proper session timeout
+- **Audit Logging**: Log all access attempts and denials
+- **Rate Limiting**: Implement rate limiting on sensitive routes
+- **Secure Storage**: Store role information securely in tokens
+
+## Troubleshooting
+
+### Users always redirected to login
+
+**Cause**: Token not present or invalid
+
+**Solution:**
+- Check NEXTAUTH_SECRET is set correctly
+- Verify NextAuth configuration
+- Ensure user is properly authenticated
+- Check token expiration
+
+### Users with correct role still blocked
+
+**Cause**: Role not set correctly in token
+
+**Solution:**
+- Verify role is included in JWT token
+- Check role name matches configuration exactly
+- Ensure token is being passed correctly
+- Debug token payload
+
+### Wildcard not working
+
+**Cause**: Wildcard character not configured correctly
+
+**Solution:**
+```typescript
+// Correct
+administrator: ["!"]
+
+// Incorrect
+administrator: ["*"]  // Use "!" not "*"
+```
+
+### 403 page not showing
+
+**Cause**: 403 page doesn't exist or route not configured
+
+**Solution:**
+- Create `/errors/403/page.tsx`
+- Verify redirect path is correct
+- Check page is properly exported
+
+## Examples
+
+### Admin Dashboard Protection
+
+```typescript
+// Only administrators can access admin routes
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"],
+  user: ["/dashboard/admin"],
+  moderator: ["/dashboard/admin/settings"],
+};
+
+// Middleware
+export default function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/dashboard/admin")) {
+    return rbacMiddleware(req);
+  }
+  return NextResponse.next();
+}
+```
+
+### API Route Protection
+
+```typescript
+// Protect API routes based on role
+export default function middleware(req: NextRequest) {
+  if (req.nextUrl.pathname.startsWith("/api/admin")) {
+    return rbacMiddleware(req);
+  }
+  return NextResponse.next();
+}
+```
+
+### Multi-Level Access
+
+```typescript
+// Different access levels for different sections
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"],
+  manager: ["/dashboard/settings", "/dashboard/users"],
+  employee: ["/dashboard/settings", "/dashboard/users", "/dashboard/reports"],
+  guest: ["/dashboard"],
+};
+```
+
+## Integration with NextAuth
+
+The RBAC middleware works seamlessly with NextAuth.js:
+
+```typescript
+// In your NextAuth configuration
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role; // Add role to token
+      }
+      return token;
+    },
+  },
+});
+```
+
+## Related Documentation
+
+- [Middleware](/features/middleware) - Complete middleware system
+- [Authentication](/features/auth) - NextAuth.js configuration
+- [Environment Variables](/setup/env) - Environment configuration
+- [Security](/security) - Security best practices

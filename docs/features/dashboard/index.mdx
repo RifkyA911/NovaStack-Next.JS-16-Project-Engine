@@ -1,0 +1,266 @@
+# Dashboard / Admin Panel
+
+Comprehensive dashboard and admin panel system with multiple modules for managing your application.
+
+## Overview
+
+The dashboard system provides a full-featured admin interface with modules for inbox management, inventory tracking, order processing, user management, reporting, and settings. Built with modern React components and integrated with the DataTable component for data display.
+
+## Available Modules
+
+### 1. Dashboard Overview
+- **Location**: `src/app/dashboard/page.tsx`
+- **Features**: 
+  - Statistics cards with key metrics
+  - Recent orders display
+  - Activity feed
+  - Quick stats
+  - Revenue charts
+- **Components**: Uses dashboard-container, dashboard-navbar, dashboard-sidebar, dashboard-footer
+
+### 2. Inbox Module
+- **Location**: `src/app/dashboard/inbox/page.tsx`
+- **Features**:
+  - Message management
+  - Inbox filtering and sorting
+  - Message status tracking
+  - Bulk actions
+- **Integration**: DataTable component for message listing
+
+### 3. Inventory Module
+- **Location**: `src/app/dashboard/inventory/page.tsx`
+- **Features**:
+  - Product inventory management
+  - Stock level tracking
+  - Category filtering
+  - Search functionality
+- **Integration**: DataTable component for inventory listing
+
+### 4. Orders Module
+- **Location**: `src/app/dashboard/orders/`
+- **Features**:
+  - Order management
+  - Order status tracking
+  - Customer information
+  - Order history
+- **Integration**: DataTable component for order listing
+
+### 5. Users Module
+- **Location**: `src/app/dashboard/users/page.tsx`
+- **Features**:
+  - User management
+  - Role assignment
+  - User status tracking
+  - Profile management
+- **Integration**: DataTable component for user listing
+
+### 6. Profile Module
+- **Location**: `src/app/dashboard/profile/page.tsx`
+- **Features**:
+  - User profile editing
+  - Avatar management
+  - Password change
+  - Account settings
+- **Components**: DialogForm for profile updates
+
+### 7. Reports Module
+- **Location**: `src/app/dashboard/reports/`
+- **Features**:
+  - Sales reports
+  - Analytics dashboard
+  - Data visualization
+  - Export functionality
+- **Sub-modules**: Sales reports
+
+### 8. Settings Module
+- **Location**: `src/app/dashboard/settings/`
+- **Features**:
+  - General settings
+  - Application configuration
+  - Theme settings
+  - Notification preferences
+- **Sub-modules**: General settings
+
+## Dashboard Components
+
+### Layout Components
+
+#### Dashboard Container
+- **Location**: `src/app/dashboard/_components/dashboard-container.tsx`
+- **Purpose**: Main container for dashboard layout
+- **Features**: Responsive layout, sidebar integration
+
+#### Dashboard Navbar
+- **Location**: `src/app/dashboard/_components/dashboard-navbar.tsx`
+- **Purpose**: Top navigation bar
+- **Features**: User menu, notifications, search, theme toggle
+
+#### Dashboard Sidebar
+- **Location**: `src/app/dashboard/_components/dashboard-sidebar.tsx`
+- **Purpose**: Side navigation menu
+- **Features**: Module navigation, active state, collapsible menu
+
+#### Dashboard Footer
+- **Location**: `src/app/dashboard/_components/dashboard-footer.tsx`
+- **Purpose**: Footer section
+- **Features**: Copyright, links, version info
+
+## Usage
+
+### Access Dashboard
+
+```typescript
+// Navigate to dashboard
+<Link href="/dashboard">Dashboard</Link>
+
+// Protected by RBAC middleware
+// Users must have appropriate role to access
+```
+
+### Dashboard Layout
+
+```typescript
+// src/app/dashboard/layout.tsx
+export default function DashboardLayout({ children }) {
+  return (
+    <div className="flex h-screen">
+      <DashboardSidebar />
+      <div className="flex-1 flex flex-col">
+        <DashboardNavbar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+        <DashboardFooter />
+      </div>
+    </div>
+  );
+}
+```
+
+### Module Integration
+
+```typescript
+// Example: Using DataTable in a module
+import { DataTable } from "@/components/organisms/@tanstack-react-table/data-table";
+
+const columns = [
+  createColumn("id", "ID", "id"),
+  createSortableColumn("name", "Name", "name"),
+  // ... more columns
+];
+
+<DataTable
+  tableName="users"
+  columns={columns}
+  data={users}
+  enableRowSelection={true}
+  enableColumnVisibility={true}
+/>
+```
+
+## Features
+
+### Common Features Across Modules
+
+- **Data Tables**: All modules use the DataTable component for consistent data display
+- **Search & Filter**: Built-in search and filtering capabilities
+- **Pagination**: Server-side and client-side pagination support
+- **Row Actions**: Context menu actions for each row
+- **Bulk Operations**: Select multiple rows for bulk actions
+- **Export**: Export data to various formats
+- **Responsive Design**: Mobile-friendly interface
+
+### Dashboard-Specific Features
+
+- **Real-time Updates**: Live data updates where applicable
+- **Statistics**: Key metrics and KPIs
+- **Charts**: Data visualization with charts
+- **Activity Feed**: Recent activity tracking
+- **Notifications**: In-app notification system
+
+## Configuration
+
+### RBAC Configuration
+
+Dashboard access is controlled by RBAC middleware:
+
+```typescript
+// src/middlewares/role.ts
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"], // Full access
+  user: ["/dashboard/users"], // Restricted from user management
+  guest: ["/dashboard"], // No dashboard access
+};
+```
+
+### Navigation Configuration
+
+Sidebar navigation is configured in the dashboard sidebar component:
+
+```typescript
+// src/app/dashboard/_components/dashboard-sidebar.tsx
+const navigation = [
+  { name: 'Overview', href: '/dashboard', icon: HomeIcon },
+  { name: 'Inbox', href: '/dashboard/inbox', icon: InboxIcon },
+  { name: 'Inventory', href: '/dashboard/inventory', icon: PackageIcon },
+  { name: 'Orders', href: '/dashboard/orders', icon: ShoppingCartIcon },
+  { name: 'Users', href: '/dashboard/users', icon: UsersIcon },
+  { name: 'Reports', href: '/dashboard/reports', icon: ChartIcon },
+  { name: 'Settings', href: '/dashboard/settings', icon: SettingsIcon },
+];
+```
+
+## Best Practices
+
+1. **Use DataTable**: Always use the DataTable component for data display
+2. **Consistent Layout**: Follow the established layout pattern
+3. **Error Handling**: Implement proper error handling for API calls
+4. **Loading States**: Show loading indicators during data fetch
+5. **Responsive Design**: Ensure all modules work on mobile devices
+6. **Accessibility**: Follow WCAG guidelines for accessibility
+7. **Performance**: Implement pagination for large datasets
+8. **Security**: Always validate permissions on server-side
+
+## Customization
+
+### Adding New Modules
+
+1. Create new module directory in `src/app/dashboard/`
+2. Create page.tsx with module content
+3. Add navigation item to dashboard sidebar
+4. Configure RBAC permissions if needed
+5. Add to documentation
+
+### Customizing Dashboard Components
+
+1. Modify component files in `src/app/dashboard/_components/`
+2. Follow existing component patterns
+3. Maintain responsive design
+4. Test across different screen sizes
+
+## Troubleshooting
+
+### Dashboard not loading
+- Check RBAC permissions
+- Verify authentication status
+- Check browser console for errors
+- Ensure all dependencies are installed
+
+### DataTable not displaying data
+- Verify data structure matches column definitions
+- Check API endpoints
+- Ensure proper error handling
+- Verify pagination configuration
+
+### Navigation not working
+- Check sidebar navigation configuration
+- Verify route paths
+- Check for JavaScript errors
+- Ensure proper routing setup
+
+## Related Documentation
+
+- [DataTable Component](/components/datatable) - Data table component used in dashboard
+- [DialogForm Component](/components/form) - Form component for profile/settings
+- [RBAC](/features/rbac) - Role-based access control
+- [Middleware](/features/middleware) - Middleware system

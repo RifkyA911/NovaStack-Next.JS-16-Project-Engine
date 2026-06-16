@@ -1,0 +1,299 @@
+# Logger
+
+Request logging middleware for tracking HTTP requests, responses, and performance metrics.
+
+## Overview
+
+The logger middleware captures HTTP requests and logs them to a centralized logging API. It provides detailed information about each request including method, URL, IP address, timestamp, status code, and duration.
+
+## Features
+
+- **Request Tracking**: Logs all HTTP requests with detailed metadata
+- **Performance Monitoring**: Tracks request duration for performance analysis
+- **IP Extraction**: Extracts client IP addresses from headers
+- **Asynchronous Logging**: Non-blocking logging to avoid performance impact
+- **Route Filtering**: Automatically skips internal routes and assets
+- **Environment Control**: Enable/disable via environment variable
+
+## Configuration
+
+### Environment Variables
+
+```env
+# Enable/disable logger (default: false)
+LOGGER_ENABLED=false
+
+# Log level (debug, info, warn, error)
+LOGGER_LEVEL=info
+```
+
+### Enable Logger
+
+To enable the logger, set the environment variable:
+
+```env
+LOGGER_ENABLED=true
+```
+
+**Default**: `false` (disabled by default for performance)
+
+## Usage
+
+### Basic Setup
+
+```typescript
+import { logMiddleware } from "@/middlewares/logger";
+import type { NextRequest, NextFetchEvent } from "next/server";
+
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  return logMiddleware(req, event);
+}
+```
+
+### Composed Middleware
+
+```typescript
+import { logMiddleware } from "@/middlewares/logger";
+import { rbacMiddleware } from "@/middlewares/role";
+
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  // Apply logger first
+  await logMiddleware(req, event);
+
+  // Apply other middleware
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
+    return rbacMiddleware(req);
+  }
+
+  return NextResponse.next();
+}
+```
+
+## Logged Data
+
+Each request logs the following information:
+
+```typescript
+{
+  method: "GET",           // HTTP method
+  url: "http://localhost:3000/api/users",
+  ip: "192.168.1.1",      // Client IP address
+  ts: "2024-01-15T10:30:00.000Z",  // ISO timestamp
+  status: 200,             // Response status code
+  duration: 45            // Request duration in milliseconds
+}
+```
+
+## Route Filtering
+
+The logger automatically skips the following routes to prevent infinite loops and unnecessary logging:
+
+- `/api/logger` - Logger API endpoint (prevents infinite loops)
+- `/_next` - Next.js internal routes
+- `/static` - Static assets
+- `favicon.ico` - Favicon
+- `/.well-known` - Well-known URLs
+
+## API Endpoint
+
+The logger sends data to `/api/logger` via POST request. Ensure this endpoint exists in your application:
+
+```typescript
+// app/api/logger/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(req: NextRequest) {
+  const logData = await req.json();
+  
+  // Store in database, send to external service, etc.
+  console.log("Log entry:", logData);
+  
+  return NextResponse.json({ success: true });
+}
+```
+
+## IP Address Extraction
+
+The logger extracts the client IP address from the `x-forwarded-for` header:
+
+```typescript
+const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+```
+
+This handles:
+- Proxy servers
+- Load balancers
+- CDN services
+- Direct connections
+
+## Performance Impact
+
+### When Disabled (Default)
+- **Impact**: None (middleware returns immediately)
+- **Performance**: No overhead
+
+### When Enabled
+- **Impact**: Minimal (~1-2ms per request)
+- **Performance**: Asynchronous logging doesn't block responses
+- **Network**: One additional POST request per HTTP request
+
+## Best Practices
+
+1. **Disable in Production**: Keep logger disabled unless needed for debugging
+2. **Use Sampling**: For high-traffic sites, consider sampling (log only X% of requests)
+3. **Rate Limit**: Implement rate limiting on the logger API endpoint
+4. **Data Retention**: Set up automatic log cleanup and retention policies
+5. **Sensitive Data**: Avoid logging sensitive information (passwords, tokens, etc.)
+6. **Error Handling**: Ensure logger API failures don't break your application
+
+## Advanced Configuration
+
+### Custom Logger API
+
+```typescript
+import { logMiddleware } from "@/middlewares/logger";
+
+// Custom logger endpoint
+const customLogger = async (req: NextRequest, event: NextFetchEvent) => {
+  if (process.env.LOGGER_ENABLED !== "true") {
+    return NextResponse.next();
+  }
+
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const start = Date.now();
+  const res = NextResponse.next();
+
+  event.waitUntil(
+    (async () => {
+      const duration = Date.now() - start;
+      await fetch("https://your-logging-service.com/api/logs", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.LOGGER_API_KEY}`
+        },
+        body: JSON.stringify({
+          method: req.method,
+          url: req.url,
+          ip,
+          ts: new Date().toISOString(),
+          status: res.status,
+          duration,
+          environment: process.env.NODE_ENV,
+        }),
+      }).catch(() => {});
+    })()
+  );
+
+  return res;
+};
+```
+
+### Conditional Logging
+
+```typescript
+import { logMiddleware } from "@/middlewares/logger";
+
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  // Only log API requests
+  if (req.nextUrl.pathname.startsWith("/api")) {
+    return logMiddleware(req, event);
+  }
+
+  return NextResponse.next();
+}
+```
+
+### Sampling
+
+```typescript
+export async function logMiddleware(req: NextRequest, event: NextFetchEvent) {
+  if (process.env.LOGGER_ENABLED !== "true") {
+    return NextResponse.next();
+  }
+
+  // Sample 10% of requests
+  if (Math.random() > 0.1) {
+    return NextResponse.next();
+  }
+
+  // ... rest of logging logic
+}
+```
+
+## Troubleshooting
+
+### Logger not working
+
+**Check:**
+1. `LOGGER_ENABLED=true` in .env
+2. `/api/logger` endpoint exists
+3. Network connectivity to logger API
+4. Console for fetch errors
+
+**Solution:**
+```env
+LOGGER_ENABLED=true
+```
+
+### High memory usage
+
+**Cause:** Too many concurrent logging requests
+
+**Solution:**
+- Implement request sampling
+- Add rate limiting
+- Use batching for logs
+- Disable in production
+
+### Missing IP addresses
+
+**Cause:** Proxy not forwarding IP correctly
+
+**Solution:**
+- Check proxy configuration
+- Verify `x-forwarded-for` header
+- Consider alternative headers like `x-real-ip`
+
+### Logger API errors
+
+**Cause:** Logger endpoint not responding
+
+**Solution:**
+- Ensure logger API is running
+- Check network connectivity
+- Implement error handling (already included with `.catch(() => {})`)
+
+## Security Considerations
+
+- **PII**: Avoid logging personally identifiable information
+- **Tokens**: Never log authentication tokens or API keys
+- **Passwords**: Exclude password fields from request bodies
+- **Rate Limiting**: Protect logger API from abuse
+- **Access Control**: Restrict who can view logs
+- **Data Encryption**: Consider encrypting sensitive log data
+
+## Monitoring and Analytics
+
+Use the logged data for:
+
+- **Performance Analysis**: Track slow requests
+- **Traffic Patterns**: Understand user behavior
+- **Error Tracking**: Monitor failed requests
+- **Security Auditing**: Detect suspicious activity
+- **Capacity Planning**: Plan for traffic spikes
+
+## Related Documentation
+
+- [Middleware](/features/middleware) - Complete middleware system
+- [Environment Variables](/setup/env) - Environment configuration
+- [API Routes](/api) - API endpoint documentation

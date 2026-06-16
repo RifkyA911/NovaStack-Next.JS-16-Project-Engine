@@ -1,0 +1,347 @@
+# Authentication Configuration
+
+Complete authentication system using NextAuth.js with multiple providers and custom pages.
+
+## Overview
+
+The authentication system provides a secure, flexible authentication solution using NextAuth.js. It supports multiple authentication providers, custom pages, and seamless integration with the RBAC middleware for role-based access control.
+
+## Available Auth Pages
+
+### 1. Login Page
+- **Location**: `src/app/auth/login/page.tsx`
+- **Features**:
+  - Email/password authentication
+  - Google OAuth integration
+  - Remember me functionality
+  - Form validation
+  - Error handling
+  - Redirect after login
+- **Providers**: Credentials, Google OAuth
+
+### 2. Register Page
+- **Location**: `src/app/auth/register/page.tsx`
+- **Features**:
+  - User registration form
+  - Email validation
+  - Password strength requirements
+  - reCAPTCHA integration (v2 and v3)
+  - Terms and conditions
+  - Email verification flow
+- **Components**: DialogForm for registration
+
+### 3. Forgot Password Page
+- **Location**: `src/app/auth/forgot-password/page.tsx`
+- **Features**:
+  - Password reset request
+  - Email input with validation
+  - Success/error messages
+  - Email sending integration
+- **Flow**: Request reset → Email sent → Reset link → New password
+
+### 4. Error Page
+- **Location**: `src/app/auth/error/page.tsx`
+- **Features**:
+  - Authentication error display
+  - Error code and message
+  - Retry options
+  - Support links
+- **Integration**: NextAuth error handling
+
+### 5. Auth Layout
+- **Location**: `src/app/auth/layout.tsx`
+- **Features**:
+  - Consistent auth page layout
+  - Background styling
+  - Responsive design
+  - Branding elements
+
+## Configuration
+
+### NextAuth Configuration
+
+```typescript
+// app/api/auth/[...nextauth]/route.ts
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
+    CredentialsProvider({
+      // Credentials configuration
+    }),
+  ],
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
+    signOut: "/auth/signout",
+    verifyRequest: "/auth/verify-request",
+    newUser: "/auth/new-user",
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.role = token.role;
+      return session;
+    },
+  },
+});
+```
+
+### Environment Variables
+
+```env
+# NextAuth Configuration
+NEXTAUTH_SECRET='supersecretkey'
+NEXTAUTH_URL='http://localhost:3000'
+
+# Google OAuth
+GOOGLE_CLIENT_ID=xxxxx
+GOOGLE_CLIENT_SECRET=xxxxx
+
+# reCAPTCHA v3 (Primary)
+NEXT_PUBLIC_RECAPTCHA_V3_SITE_KEY='your-recaptcha-site-key-here'
+RECAPTCHA_V3_SECRET_KEY='your-recaptcha-secret-key-here'
+
+# reCAPTCHA v2 (Fallback)
+NEXT_PUBLIC_RECAPTCHA_V2_SITE_KEY='your-recaptcha-site-key-here'
+RECAPTCHA_V2_SECRET_KEY='your-recaptcha-secret-key-here'
+```
+
+## Authentication Flow
+
+### Login Flow
+
+1. User navigates to `/auth/login`
+2. User enters credentials or clicks Google OAuth
+3. Form validation and reCAPTCHA verification
+4. NextAuth authenticates user
+5. JWT token is created with user role
+6. User is redirected to dashboard or intended page
+7. RBAC middleware checks permissions
+
+### Registration Flow
+
+1. User navigates to `/auth/register`
+2. User fills registration form
+3. Form validation and reCAPTCHA verification
+4. User account is created
+5. Email verification sent (if enabled)
+6. User is redirected to login or verification page
+7. User can then login with credentials
+
+### Password Reset Flow
+
+1. User navigates to `/auth/forgot-password`
+2. User enters email address
+3. System generates reset token
+4. Reset link sent to email
+5. User clicks link in email
+6. User enters new password
+7. Password is updated
+8. User can login with new password
+
+## Middleware Integration
+
+### Authentication Middleware
+
+```typescript
+// src/middlewares/auth.ts
+export const authMiddleware = withAuth({
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
+    signOut: "/auth/signout",
+    verifyRequest: "/auth/verify-request",
+    newUser: "/auth/new-user",
+  },
+});
+```
+
+### Access Page Middleware
+
+```typescript
+// src/middlewares/auth.ts
+export async function accessPageMiddleware(req: NextRequest) {
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
+
+  // Redirect authenticated users away from auth pages
+  if (token && req.nextUrl.pathname.startsWith("/auth")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  return NextResponse.next();
+}
+```
+
+## RBAC Integration
+
+### Role Assignment
+
+User roles are assigned during registration and stored in the JWT token:
+
+```typescript
+// In your registration handler
+const user = await createUser({
+  email,
+  password,
+  role: 'user', // or 'administrator', 'moderator', etc.
+});
+
+// Role is added to JWT token in NextAuth callback
+callbacks: {
+  async jwt({ token, user }) {
+    if (user) {
+      token.role = user.role;
+    }
+    return token;
+  },
+}
+```
+
+### Permission Checking
+
+```typescript
+// In your components or API routes
+import { auth } from "@/auth/config";
+
+const session = await auth();
+const userRole = session?.user?.role;
+
+if (userRole !== 'administrator') {
+  // Deny access
+}
+```
+
+## Security Features
+
+### reCAPTCHA Integration
+
+- **Primary**: reCAPTCHA v3 for seamless user experience
+- **Fallback**: reCAPTCHA v2 for accessibility
+- **Validation**: Server-side verification
+- **Score Threshold**: Configurable security level
+
+### Password Security
+
+- **Hashing**: bcrypt for password hashing
+- **Strength Requirements**: Minimum length, complexity rules
+- **Reset Flow**: Secure token-based password reset
+- **Session Management**: Secure session handling
+
+### Token Security
+
+- **JWT**: JSON Web Tokens for stateless authentication
+- **Secret**: Environment-based secret key
+- **Expiration**: Configurable token lifetime
+- **Refresh**: Token refresh mechanism
+
+## Customization
+
+### Adding New Providers
+
+```typescript
+// Add to NextAuth configuration
+providers: [
+  // Existing providers...
+  GitHubProvider({
+    clientId: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+  }),
+  FacebookProvider({
+    clientId: process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  }),
+],
+```
+
+### Custom Auth Pages
+
+Create custom pages in `src/app/auth/`:
+
+```typescript
+// src/app/auth/custom-page/page.tsx
+export default function CustomAuthPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      {/* Your custom auth page */}
+    </div>
+  );
+}
+```
+
+### Custom Callbacks
+
+```typescript
+callbacks: {
+  async signIn({ user, account, profile }) {
+    // Custom sign-in logic
+    return true;
+  },
+  async redirect({ url, baseUrl }) {
+    // Custom redirect logic
+    return baseUrl;
+  },
+  async session({ session, token }) {
+    // Custom session logic
+    return session;
+  },
+}
+```
+
+## Best Practices
+
+1. **Environment Variables**: Never commit secrets to version control
+2. **Strong Passwords**: Enforce strong password requirements
+3. **HTTPS**: Always use HTTPS in production
+4. **Rate Limiting**: Implement rate limiting on auth endpoints
+5. **Session Management**: Implement proper session timeout
+6. **Error Handling**: Provide user-friendly error messages
+7. **Logging**: Log authentication attempts for security monitoring
+8. **Testing**: Thoroughly test all authentication flows
+
+## Troubleshooting
+
+### Login not working
+- Check NEXTAUTH_SECRET is set correctly
+- Verify NextAuth configuration
+- Check provider credentials (Google OAuth)
+- Ensure database connection for user storage
+- Check browser console for errors
+
+### OAuth not working
+- Verify OAuth client ID and secret
+- Check redirect URIs in OAuth provider console
+- Ensure NEXTAUTH_URL matches your domain
+- Check CORS configuration
+- Verify OAuth provider status
+
+### Session not persisting
+- Check cookie configuration
+- Verify NEXTAUTH_SECRET consistency
+- Check browser cookie settings
+- Ensure proper session callback implementation
+- Check token expiration settings
+
+### reCAPTCHA not working
+- Verify site key and secret key
+- Check domain configuration in reCAPTCHA console
+- Ensure proper script loading
+- Check for JavaScript errors
+- Test with different browsers
+
+## Related Documentation
+
+- [RBAC](/features/rbac) - Role-based access control
+- [Middleware](/features/middleware) - Middleware system
+- [Environment Variables](/setup/env) - Environment configuration
+- [Security](/security) - Security best practices

@@ -1,0 +1,277 @@
+# Middleware
+
+Comprehensive middleware system for Next.js application with authentication, logging, RBAC, and robot control features.
+
+## Overview
+
+The middleware system provides enterprise-grade request handling with multiple layers of security and functionality. All middleware functions are located in `src/middlewares/` and can be composed together in the main middleware configuration.
+
+## Available Middleware
+
+### 1. Authentication Middleware (`auth.ts`)
+
+Handles authentication using NextAuth.js with custom page redirects.
+
+**Features:**
+- Custom authentication pages (login, error, signout, etc.)
+- Token validation using NextAuth JWT
+- Automatic redirect for authenticated users accessing auth pages
+- Integration with NextAuth middleware
+
+**Usage:**
+```typescript
+import { authMiddleware } from "@/middlewares/auth";
+
+export const config = {
+  matcher: ["/dashboard/:path*", "/auth/:path*"],
+};
+
+export default authMiddleware;
+```
+
+**Configuration:**
+```typescript
+export const authMiddleware = withAuth({
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
+    signOut: "/auth/signout",
+    verifyRequest: "/auth/verify-request",
+    newUser: "/auth/new-user",
+  },
+});
+```
+
+### 2. Logger Middleware (`logger.ts`)
+
+Request logging middleware that captures HTTP requests and sends them to a logging API.
+
+**Features:**
+- Request/response logging with duration tracking
+- IP address extraction from headers
+- Automatic skipping of internal routes and assets
+- Asynchronous logging (non-blocking)
+- Environment-based enable/disable
+
+**Configuration:**
+```env
+# .env
+LOGGER_ENABLED=false  # Default: false
+LOGGER_LEVEL=info      # Options: debug, info, warn, error
+```
+
+**Usage:**
+```typescript
+import { logMiddleware } from "@/middlewares/logger";
+
+export default function middleware(req: NextRequest, event: NextFetchEvent) {
+  return logMiddleware(req, event);
+}
+```
+
+**Logged Data:**
+- HTTP method
+- Request URL
+- Client IP address
+- Timestamp
+- Response status
+- Request duration (ms)
+
+**Skipped Routes:**
+- `/api/logger` (to prevent infinite loops)
+- `/_next` (Next.js internal)
+- `/static` (static assets)
+- `favicon.ico`
+- `/.well-known` (well-known URLs)
+
+### 3. Robot Control Middleware (`robot.ts`)
+
+SEO and robot control middleware using X-Robots-Tag headers.
+
+**Features:**
+- Block search engine indexing for specific routes
+- Custom X-Robots-Tag header injection
+- Route-based robot control
+
+**Usage:**
+```typescript
+import { robotConfig } from "@/middlewares/robot";
+
+export default function middleware(req: NextRequest) {
+  return robotConfig(req);
+}
+```
+
+**Configuration:**
+```typescript
+export function robotConfig(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+
+  // Block search engine indexing for /dashboard and sub-paths
+  if (pathname.startsWith("/dashboard")) {
+    const res = NextResponse.next();
+    res.headers.set("x-robots-tag", "noindex, nofollow");
+    return res;
+  }
+
+  return NextResponse.next();
+}
+```
+
+**X-Robots-Tag Options:**
+- `noindex` - Don't index this page
+- `nofollow` - Don't follow links on this page
+- `noarchive` - Don't archive this page
+- `nosnippet` - Don't show snippets in search results
+
+### 4. RBAC Middleware (`role.ts`)
+
+Role-Based Access Control middleware for route protection.
+
+**Features:**
+- Role-based route access control
+- Forbidden route configuration per role
+- Automatic redirect to login for unauthenticated users
+- Custom 403 error page for forbidden access
+- Support for full access (wildcard)
+
+**Usage:**
+```typescript
+import { rbacMiddleware } from "@/middlewares/role";
+
+export default function middleware(req: NextRequest) {
+  return rbacMiddleware(req);
+}
+```
+
+**Configuration:**
+```typescript
+const userForbiddenRoutes: Record<string, string[]> = {
+  administrator: ["!"], // "!" means all routes allowed
+  user: ["/dashboard/users"], // user forbidden from these routes
+  guest: ["/dashboard"], // example additional role
+};
+```
+
+**Role Definitions:**
+- `administrator` - Full access (all routes allowed)
+- `user` - Restricted access (specific routes forbidden)
+- `guest` - Limited access (dashboard forbidden)
+
+**Redirect Behavior:**
+- Unauthenticated → `/auth/login`
+- Forbidden access → `/errors/403`
+- Allowed access → Continue to requested route
+
+## Composing Middleware
+
+You can combine multiple middleware functions in your main middleware file:
+
+```typescript
+import { NextRequest, NextResponse, NextFetchEvent } from "next/server";
+import { logMiddleware } from "@/middlewares/logger";
+import { robotConfig } from "@/middlewares/robot";
+import { rbacMiddleware } from "@/middlewares/role";
+import { accessPageMiddleware } from "@/middlewares/auth";
+
+export default async function middleware(
+  req: NextRequest,
+  event: NextFetchEvent
+) {
+  // Apply logger middleware
+  await logMiddleware(req, event);
+
+  // Apply robot control
+  const robotResponse = robotConfig(req);
+  if (robotResponse) return robotResponse;
+
+  // Apply RBAC for protected routes
+  if (req.nextUrl.pathname.startsWith("/dashboard")) {
+    return rbacMiddleware(req);
+  }
+
+  // Apply auth page access control
+  if (req.nextUrl.pathname.startsWith("/auth")) {
+    return accessPageMiddleware(req);
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
+};
+```
+
+## Environment Variables
+
+Required environment variables for middleware:
+
+```env
+# Authentication
+NEXTAUTH_SECRET='supersecretkey'
+NEXTAUTH_URL='http://localhost:3000'
+
+# Logger
+LOGGER_ENABLED=false
+LOGGER_LEVEL=info
+
+# Base URL
+NEXT_PUBLIC_BASE_URL='http://localhost:3000'
+```
+
+## Best Practices
+
+1. **Order Matters**: Apply middleware in the correct order (logger first, then security checks)
+2. **Performance**: Use async operations appropriately to avoid blocking requests
+3. **Security**: Always validate tokens and check permissions before allowing access
+4. **Logging**: Keep logger disabled in production unless needed for debugging
+5. **RBAC**: Regularly review and update role permissions
+6. **SEO**: Use robot control carefully to avoid blocking important pages
+
+## Troubleshooting
+
+### Logger not working
+- Check `LOGGER_ENABLED=true` in .env
+- Verify `/api/logger` endpoint exists
+- Check console for fetch errors
+
+### RBAC not redirecting
+- Verify user has valid token
+- Check role is set correctly in token
+- Ensure forbidden routes are configured properly
+
+### Auth middleware not working
+- Verify NEXTAUTH_SECRET is set
+- Check NextAuth configuration
+- Ensure auth pages exist
+
+### Robot control not working
+- Check route matching logic
+- Verify header is being set correctly
+- Test with browser developer tools
+
+## Security Considerations
+
+- Always validate tokens on the server side
+- Use environment variables for sensitive data
+- Implement rate limiting for auth endpoints
+- Regularly audit role permissions
+- Keep middleware functions simple and focused
+- Avoid storing sensitive data in logs
+
+## Performance Impact
+
+- **Logger**: Minimal impact when disabled, ~1-2ms per request when enabled
+- **RBAC**: ~1ms per request for token validation
+- **Robot Control**: Negligible impact (header setting only)
+- **Auth**: Depends on NextAuth configuration
+
+## Related Documentation
+
+- [Authentication](/features/auth) - NextAuth.js configuration
+- [RBAC](/features/rbac) - Role-based access control details
+- [Logger](/features/logger) - Logging system documentation
+- [Environment Variables](/setup/env) - Complete environment configuration
