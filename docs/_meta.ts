@@ -3,4 +3,8 @@ export default {
     title: 'Components',
     type: 'folder',
   },
+  'features': {
+    title: 'Features',
+    type: 'folder',
+  },
 }

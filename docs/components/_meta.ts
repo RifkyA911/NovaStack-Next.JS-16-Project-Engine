@@ -3,6 +3,6 @@ export default {
     title: 'DataTable',
   },
   form: {
-    title: 'Form',
+    title: 'DialogForm',
   },
 }
